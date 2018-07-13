@@ -247,7 +247,7 @@ func (d *device) SetServices(ss []*Service) error {
 	return nil
 }
 
-func (d *device) Scan(ss []UUID, dup bool) {
+func (d *device) Scan(ss []UUID, dup bool) error {
 	args := xpc.Dict{
 		"kCBMsgArgUUIDs": uuidSlice(ss),
 		"kCBMsgArgOptions": xpc.Dict{
@@ -255,6 +255,7 @@ func (d *device) Scan(ss []UUID, dup bool) {
 		},
 	}
 	d.sendCmd(29, args)
+	return nil
 }
 
 func (d *device) StopScanning() {

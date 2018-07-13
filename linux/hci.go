@@ -127,6 +127,10 @@ func (h *HCI) SetScanEnable(en bool, dup bool) error {
 }
 
 func (h *HCI) Connect(pd *PlatData) error {
+	err := h.setAdvertiseEnable(false)
+	if err != nil {
+		return err
+	}
 	h.c.Send(
 		cmd.LECreateConn{
 			LEScanInterval:        0x0004,         // N x 0.625ms

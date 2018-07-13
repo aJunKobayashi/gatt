@@ -193,9 +193,14 @@ func (d *device) StopAdvertising() error {
 	return d.hci.SetAdvertiseEnable(false)
 }
 
-func (d *device) Scan(ss []UUID, dup bool) {
+func (d *device) Scan(ss []UUID, dup bool) error {
 	// TODO: filter
+	err := d.hci.SetAdvertiseEnable(true)
+	if err != nil {
+		return err
+	}
 	d.hci.SetScanEnable(true, dup)
+	return nil
 }
 
 func (d *device) StopScanning() {

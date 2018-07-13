@@ -67,7 +67,7 @@ type Device interface {
 	// If ss is set to nil, all devices scanned are reported.
 	// dup specifies weather duplicated advertisement should be reported or not.
 	// When a remote peripheral is discovered, the PeripheralDiscovered Handler is called.
-	Scan(ss []UUID, dup bool)
+	Scan(ss []UUID, dup bool) error
 
 	// StopScanning stops scanning.
 	StopScanning()
