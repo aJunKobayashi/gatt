@@ -62,7 +62,7 @@ func NewHCI(devID int, chk bool, maxConn int) (*HCI, error) {
 		plist:   make(map[bdaddr]*PlatData),
 		plistmu: &sync.Mutex{},
 
-		bufCnt:  make(chan struct{}, 15-1),
+		bufCnt:  make(chan struct{}, 7-1),
 		bufSize: 27,
 
 		maxConn: maxConn,
