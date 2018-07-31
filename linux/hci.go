@@ -142,7 +142,7 @@ func (h *HCI) Connect(pd *PlatData) error {
 			ConnIntervalMin:       0x0006,         // N x 0.125ms
 			ConnIntervalMax:       0x0006,         // N x 0.125ms
 			ConnLatency:           0x0000,         //
-			SupervisionTimeout:    0x000A,         // N x 10ms
+			SupervisionTimeout:    0x0190,         // N x 10ms
 			MinimumCELength:       0x0000,         // N x 0.625ms
 			MaximumCELength:       0x0000,         // N x 0.625ms
 		})
