@@ -358,10 +358,19 @@ func (p *peripheral) sendCmd(op byte, b []byte) {
 	p.reqc <- message{op: op, b: b}
 }
 
-func (p *peripheral) sendReq(op byte, b []byte) []byte {
+func (p *peripheral) sendReq(op byte, b []byte) (data []byte, err error) {
+	defer func() {
+		if panicErr := recover(); panicErr != nil {
+			err = fmt.Errorf("[sendReq]recover: %+v", panicErr)
+		}
+	}()
 	m := message{op: op, b: b, rspc: make(chan []byte)}
 	p.reqc <- m
-	return <-m.rspc
+	data, ok := <-m.rspc
+	if !ok {
+		return nil, fmt.Errorf("[sendReq] connection is closed")
+	}
+	return data, nil
 }
 
 func (p *peripheral) loop() {
