@@ -368,11 +368,12 @@ func (p *peripheral) loop() {
 	// Serialize the request.
 	rspc := make(chan []byte)
 
+	var req message
 	// Dequeue request loop
 	go func() {
 		for {
 			select {
-			case req := <-p.reqc:
+			case req = <-p.reqc:
 				p.l2c.Write(req.b)
 				if req.rspc == nil {
 					break
@@ -401,6 +402,7 @@ func (p *peripheral) loop() {
 		n, err := p.l2c.Read(buf)
 		if n == 0 || err != nil {
 			close(p.quitc)
+			close(req.rspc)
 			return
 		}
 
