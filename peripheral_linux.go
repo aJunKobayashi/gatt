@@ -459,7 +459,9 @@ func (p *peripheral) loop() {
 		n, err := p.l2c.Read(buf)
 		if n == 0 || err != nil {
 			close(p.quitc)
-			close(req.rspc)
+			if req.rspc != nil {
+				close(req.rspc)
+			}
 			cancel()
 			return
 		}
