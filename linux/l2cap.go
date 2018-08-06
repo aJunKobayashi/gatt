@@ -130,6 +130,7 @@ func (c *conn) Write(b []byte) (int, error) {
 func (c *conn) Close() error {
 	h := c.hci
 	hh := c.attr
+	close(c.aclc)
 	h.connsmu.Lock()
 	defer h.connsmu.Unlock()
 	_, found := h.conns[hh]
