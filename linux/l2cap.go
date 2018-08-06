@@ -87,6 +87,7 @@ func (c *conn) write(cid int, b []byte) (int, error) {
 
 		// make sure we don't send more buffers than the controller can handdle
 		c.hci.bufCnt <- struct{}{}
+		c.hci.pendingCommandNum[c.attr]++
 
 		written, err := c.hci.d.Write(w[:5+dlen])
 		if err != nil || written <= 0 {
