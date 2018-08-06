@@ -2,6 +2,7 @@ package gatt
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -410,6 +411,8 @@ func (p *peripheral) sendReq(op byte, b []byte) (data []byte, err error) {
 func (p *peripheral) loop() {
 	// Serialize the request.
 	rspc := make(chan []byte)
+	ctx := context.Background()
+	innerCtx, cancel := context.WithCancel(ctx)
 
 	var req message
 	// Dequeue request loop
@@ -421,7 +424,15 @@ func (p *peripheral) loop() {
 				if req.rspc == nil {
 					break
 				}
-				r := <-rspc
+				var r []byte
+				select {
+				case r = <-rspc:
+					break
+				case <-innerCtx.Done():
+					log.Printf("[loop] canceled")
+					return
+				}
+
 				switch reqOp, rspOp := req.b[0], r[0]; {
 				case rspOp == attRspFor[reqOp]:
 				case rspOp == attOpError && r[1] == reqOp:
@@ -446,6 +457,7 @@ func (p *peripheral) loop() {
 		if n == 0 || err != nil {
 			close(p.quitc)
 			close(req.rspc)
+			cancel()
 			return
 		}
 
