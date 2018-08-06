@@ -29,8 +29,9 @@ type HCI struct {
 	connsmu *sync.Mutex
 	conns   map[uint16]*conn
 
-	adv   bool
-	advmu *sync.Mutex
+	adv               bool
+	advmu             *sync.Mutex
+	pendingCommandNum map[uint16]int
 }
 
 type bdaddr [6]byte
@@ -69,7 +70,8 @@ func NewHCI(devID int, chk bool, maxConn int) (*HCI, error) {
 		connsmu: &sync.Mutex{},
 		conns:   map[uint16]*conn{},
 
-		advmu: &sync.Mutex{},
+		advmu:             &sync.Mutex{},
+		pendingCommandNum: map[uint16]int{},
 	}
 
 	e.HandleEvent(evt.LEMeta, evt.HandlerFunc(h.handleLEMeta))
@@ -290,9 +292,25 @@ func (h *HCI) handleNumberOfCompletedPkts(b []byte) error {
 	if err := ep.Unmarshal(b); err != nil {
 		return err
 	}
+
 	for _, r := range ep.Packets {
+		connectionHandle := r.ConnectionHandle
+		_, exist := h.pendingCommandNum[connectionHandle]
+		if exist {
+			if h.pendingCommandNum[connectionHandle] < int(r.NumOfCompletedPkts) {
+				fmt.Printf("[handleNumberOfCompletedPkts] invalid peindingCommandNum: %+v", h.pendingCommandNum)
+				h.pendingCommandNum[connectionHandle] = 0
+			} else {
+				h.pendingCommandNum[connectionHandle]--
+			}
+		}
 		for i := 0; i < int(r.NumOfCompletedPkts); i++ {
-			<-h.bufCnt
+			select {
+			case <-h.bufCnt:
+				break
+			default:
+				fmt.Printf("[handleNumberOfCompletedPkts] no data in bufCnt")
+			}
 		}
 	}
 	return nil
@@ -338,6 +356,19 @@ func (h *HCI) handleDisconnectionComplete(b []byte) error {
 		return err
 	}
 	hh := ep.ConnectionHandle
+	pendingNum, exist := h.pendingCommandNum[hh]
+	if exist && pendingNum > 0 {
+		fmt.Printf("[handleDisconnectionComplete] delete uncompleted pending command")
+		for i := 0; i < int(pendingNum); i++ {
+			select {
+			case <-h.bufCnt:
+				break
+			default:
+				fmt.Printf("[handleDisconnectionComplete] buffer is under 0")
+			}
+		}
+	}
+	delete(h.pendingCommandNum, hh)
 	h.connsmu.Lock()
 	defer h.connsmu.Unlock()
 	c, found := h.conns[hh]
