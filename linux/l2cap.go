@@ -88,7 +88,11 @@ func (c *conn) write(cid int, b []byte) (int, error) {
 		// make sure we don't send more buffers than the controller can handdle
 		c.hci.bufCnt <- struct{}{}
 
-		c.hci.d.Write(w[:5+dlen])
+		written, err := c.hci.d.Write(w[:5+dlen])
+		if err != nil || written <= 0 {
+			fmt.Printf("[(c *conn) write], written: %+v, error: %+v", written, err)
+			<-c.hci.bufCnt
+		}
 		w = w[dlen:] // advance the pointer to the next segment, if any.
 		flag = 0x10  // the rest of iterations attr continued segments, if any.
 		n -= dlen

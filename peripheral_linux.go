@@ -441,6 +441,9 @@ func (p *peripheral) loop() {
 					// FIXME: terminate the connection?
 				}
 				req.rspc <- r
+			case <-innerCtx.Done():
+				log.Printf("[loop] canceled")
+				return
 			case <-p.quitc:
 				return
 			}
