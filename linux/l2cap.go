@@ -87,7 +87,9 @@ func (c *conn) write(cid int, b []byte) (int, error) {
 
 		// make sure we don't send more buffers than the controller can handdle
 		c.hci.bufCnt <- struct{}{}
+		c.hci.mapmu.Lock()
 		c.hci.pendingCommandNum[c.attr]++
+		c.hci.mapmu.Unlock()
 
 		c.hci.d.Write(w[:5+dlen])
 		w = w[dlen:] // advance the pointer to the next segment, if any.
