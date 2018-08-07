@@ -301,7 +301,7 @@ func (h *HCI) handleNumberOfCompletedPkts(b []byte) error {
 				fmt.Printf("[handleNumberOfCompletedPkts] invalid peindingCommandNum: %+v", h.pendingCommandNum)
 				h.pendingCommandNum[connectionHandle] = 0
 			} else {
-				h.pendingCommandNum[connectionHandle]--
+				h.pendingCommandNum[connectionHandle] -= int(r.NumOfCompletedPkts)
 			}
 		}
 		for i := 0; i < int(r.NumOfCompletedPkts); i++ {
