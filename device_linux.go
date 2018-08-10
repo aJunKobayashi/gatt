@@ -217,8 +217,8 @@ func (d *device) SendHCIRawCommand(c cmd.CmdParam) ([]byte, error) {
 	return d.hci.SendRawCommand(c)
 }
 
-func (d *device) CancelConnectionRequest(p Peripheral) {
-	d.hci.CancelConnectionRequest(p.(*peripheral).pd)
+func (d *device) CancelConnectionRequest(p Peripheral) error {
+	return d.hci.CancelConnectionRequest(p.(*peripheral).pd)
 }
 
 // Flush pending advertising settings to the device.
