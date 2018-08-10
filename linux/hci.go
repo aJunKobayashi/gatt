@@ -153,6 +153,11 @@ func (h *HCI) Connect(pd *PlatData) error {
 	return nil
 }
 
+func (h *HCI) CancelConnectionRequest(pd *PlatData) error {
+	return h.c.SendAndCheckResp(
+		cmd.LECreateConnCancel{}, []byte{0x00})
+}
+
 func (h *HCI) CancelConnection(pd *PlatData) error {
 	return pd.Conn.Close()
 }
@@ -324,6 +329,10 @@ func (h *HCI) handleConnection(b []byte) {
 	ep := &evt.LEConnectionCompleteEP{}
 	if err := ep.Unmarshal(b); err != nil {
 		return // FIXME
+	}
+	if ep.Status != 0 {
+		// when status is not zero. connection is not established
+		return
 	}
 	hh := ep.ConnectionHandle
 	c := newConn(h, hh)
