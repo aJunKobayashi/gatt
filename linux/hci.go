@@ -330,6 +330,10 @@ func (h *HCI) handleConnection(b []byte) {
 	if err := ep.Unmarshal(b); err != nil {
 		return // FIXME
 	}
+	if ep.Status != 0 {
+		// when status is not zero. connection is not established
+		return
+	}
 	hh := ep.ConnectionHandle
 	c := newConn(h, hh)
 	h.connsmu.Lock()
