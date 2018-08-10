@@ -153,6 +153,11 @@ func (h *HCI) Connect(pd *PlatData) error {
 	return nil
 }
 
+func (h *HCI) CancelConnectionRequest(pd *PlatData) {
+	h.c.Send(
+		cmd.LECreateConnCancel{})
+}
+
 func (h *HCI) CancelConnection(pd *PlatData) error {
 	return pd.Conn.Close()
 }
