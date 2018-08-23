@@ -282,11 +282,11 @@ func (p *peripheral) WriteCharacteristic(c *Characteristic, value []byte, noRsp 
 	binary.LittleEndian.PutUint16(b[1:3], c.vh)
 	copy(b[3:], value)
 
-	if noRsp {
-		p.sendCmd(op, b)
-		return nil
-	}
 	var err error
+	if noRsp {
+		err = p.sendCmd(op, b)
+		return err
+	}
 	b, err = p.sendReq(op, b)
 	if err != nil {
 		return err
@@ -389,8 +389,14 @@ type message struct {
 	rspc chan []byte
 }
 
-func (p *peripheral) sendCmd(op byte, b []byte) {
+func (p *peripheral) sendCmd(op byte, b []byte) (err error) {
+	defer func() {
+		if panicErr := recover(); panicErr != nil {
+			err = fmt.Errorf("[sendCmd]recover: %+v", panicErr)
+		}
+	}()
 	p.reqc <- message{op: op, b: b}
+	return nil
 }
 
 func (p *peripheral) sendReq(op byte, b []byte) (data []byte, err error) {
@@ -462,6 +468,7 @@ func (p *peripheral) loop() {
 			if req.rspc != nil {
 				close(req.rspc)
 			}
+			close(p.reqc)
 			cancel()
 			return
 		}
