@@ -261,7 +261,7 @@ func (h *HCI) handleAdvertisement(b []byte) {
 		addr := bdaddr(ep.Address[i])
 		et := ep.EventType[i]
 		connectable := et == advInd || et == advDirectInd
-		scannable := et == advInd || et == advScanInd
+		// scannable := et == advInd || et == advScanInd
 
 		if et == scanRsp {
 			h.plistmu.Lock()
