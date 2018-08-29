@@ -99,7 +99,7 @@ func (d *device) Init(f func(Device, State)) error {
 		p := &peripheral{pd: pd, d: d}
 		if d.peripheralDiscovered != nil {
 			pd.Name = a.LocalName
-			d.peripheralDiscovered(p, a, int(pd.RSSI))
+			d.peripheralDiscovered(p, a, int(pd.RSSI), pd.ScanResponseData)
 		}
 	}
 	d.state = StatePoweredOn

@@ -46,6 +46,8 @@ type PlatData struct {
 	RSSI        int8
 
 	Conn io.ReadWriteCloser
+
+	ScanResponseData bool
 }
 
 func NewHCI(devID int, chk bool, maxConn int) (*HCI, error) {
@@ -269,6 +271,7 @@ func (h *HCI) handleAdvertisement(b []byte) {
 			h.plistmu.Unlock()
 			if ok {
 				pd.Data = append(pd.Data, ep.Data[i]...)
+				pd.ScanResponseData = (et == scanRsp)
 				h.AdvertisementHandler(pd)
 			}
 			continue
@@ -289,6 +292,7 @@ func (h *HCI) handleAdvertisement(b []byte) {
 				continue
 			}
 		*/
+		pd.ScanResponseData = (et == scanRsp)
 		h.AdvertisementHandler(pd)
 	}
 }
