@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
+	"runtime"
 
 	"github.com/aJunKobayashi/gatt/linux/cmd"
 )
@@ -57,6 +59,38 @@ func (c *conn) updateConnection() (int, error) {
 	return c.write(0x05, b)
 }
 
+var (
+	re = regexp.MustCompile(`^(\S.+)\.(\S.+)$`)
+)
+
+type CallerInfo struct {
+	PackageName  string
+	FunctionName string
+	FileName     string
+	FileLine     int
+}
+
+func Dump() (callerInfo []*CallerInfo) {
+	for i := 1; ; i++ {
+		pc, _, _, ok := runtime.Caller(i) // https://golang.org/pkg/runtime/#Caller
+		if !ok {
+			break
+		}
+
+		fn := runtime.FuncForPC(pc)
+		fileName, fileLine := fn.FileLine(pc)
+
+		_fn := re.FindStringSubmatch(fn.Name())
+		callerInfo = append(callerInfo, &CallerInfo{
+			PackageName:  _fn[1],
+			FunctionName: _fn[2],
+			FileName:     fileName,
+			FileLine:     fileLine,
+		})
+	}
+	return
+}
+
 // write writes the l2cap payload to the controller.
 // It first prepend the l2cap header (4-bytes), and diassemble the payload
 // if it is larger than the HCI LE buffer size that the conntroller can support.
@@ -93,6 +127,12 @@ func (c *conn) write(cid int, b []byte) (int, error) {
 		c.hci.mapmu.Unlock()
 
 		log.Printf("[l2cap][write] 0x%+v", hex.EncodeToString(w[:5+dlen]))
+		info := Dump()
+		for i := len(info) - 1; i > -1; i-- {
+			v := info[i]
+			log.Printf("[l2cap][write]%02d: %s.%s@%s:%d\n", i, v.PackageName, v.FunctionName, v.FileName, v.FileLine)
+		}
+
 		c.hci.d.Write(w[:5+dlen])
 		w = w[dlen:] // advance the pointer to the next segment, if any.
 		flag = 0x10  // the rest of iterations attr continued segments, if any.
