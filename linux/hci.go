@@ -136,6 +136,7 @@ func (h *HCI) Connect(pd *PlatData) error {
 	var adv bool
 	h.advmu.Lock()
 	adv = h.adv
+	h.adv = false
 	h.advmu.Unlock()
 	if adv {
 		h.setAdvertiseEnable(false)
