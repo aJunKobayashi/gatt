@@ -1,6 +1,7 @@
 package linux
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -91,6 +92,7 @@ func (c *conn) write(cid int, b []byte) (int, error) {
 		c.hci.pendingCommandNum[c.attr]++
 		c.hci.mapmu.Unlock()
 
+		log.Printf("[l2cap][write] 0x%+v", hex.EncodeToString(w[:5+dlen]))
 		c.hci.d.Write(w[:5+dlen])
 		w = w[dlen:] // advance the pointer to the next segment, if any.
 		flag = 0x10  // the rest of iterations attr continued segments, if any.
