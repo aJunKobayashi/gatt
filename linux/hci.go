@@ -133,7 +133,13 @@ func (h *HCI) SetScanEnable(en bool, dup bool) error {
 }
 
 func (h *HCI) Connect(pd *PlatData) error {
-	h.setAdvertiseEnable(false)
+	var adv bool
+	h.advmu.Lock()
+	adv = h.adv
+	h.advmu.Unlock()
+	if adv {
+		h.setAdvertiseEnable(false)
+	}
 	h.c.Send(
 		cmd.LECreateConn{
 			LEScanInterval:        0x0004,         // N x 0.625ms
@@ -342,7 +348,7 @@ func (h *HCI) handleConnection(b []byte) {
 	h.connsmu.Lock()
 	h.conns[hh] = c
 	h.connsmu.Unlock()
-	h.setAdvertiseEnable(true)
+	// h.setAdvertiseEnable(true)
 
 	// FIXME: sloppiness. This call should be called by the package user once we
 	// flesh out the support of l2cap signaling packets (CID:0x0001,0x0005)
@@ -397,7 +403,7 @@ func (h *HCI) handleDisconnectionComplete(b []byte) error {
 	}
 	delete(h.conns, hh)
 	close(c.aclc)
-	h.setAdvertiseEnable(true)
+	// h.setAdvertiseEnable(true)
 	return nil
 }
 
