@@ -424,8 +424,13 @@ func (p *peripheral) loop() {
 	// Dequeue request loop
 	go func() {
 		for {
+			var open bool
 			select {
-			case req = <-p.reqc:
+			case req, open = <-p.reqc:
+				if !open {
+					log.Printf("channel is already closed.")
+					return
+				}
 				p.l2c.Write(req.b)
 				if req.rspc == nil {
 					break
