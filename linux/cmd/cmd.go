@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -77,12 +78,18 @@ func (c *Cmd) Send(cp CmdParam) ([]byte, error) {
 	raw := p.Marshal()
 
 	c.sent = append(c.sent, p)
+	log.Printf("[cmd][Send] write: 0x%+v", hex.EncodeToString(raw))
 	if n, err := c.dev.Write(raw); err != nil {
+		log.Printf("[cmd][Send] error: %+v", err)
 		return nil, err
 	} else if n != len(raw) {
+		log.Printf("[cmd][Send] error: Failed to send whole Cmd pkt to HCI socket")
 		return nil, errors.New("Failed to send whole Cmd pkt to HCI socket")
 	}
-	return <-p.done, nil
+
+	result := <-p.done
+	log.Printf("[cmd][Send] receive: 0x%+v", hex.EncodeToString(result))
+	return result, nil
 }
 
 func (c *Cmd) SendAndCheckResp(cp CmdParam, exp []byte) error {
