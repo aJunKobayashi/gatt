@@ -95,6 +95,9 @@ func Dump() (callerInfo []*CallerInfo) {
 // It first prepend the l2cap header (4-bytes), and diassemble the payload
 // if it is larger than the HCI LE buffer size that the conntroller can support.
 func (c *conn) write(cid int, b []byte) (int, error) {
+
+	log.Printf("[l2cap][write] cid: %+v,  b: 0x%+v", cid, hex.EncodeToString(b))
+
 	flag := uint8(0) // ACL data continuation flag
 	tlen := len(b)   // Total length of the l2cap payload
 

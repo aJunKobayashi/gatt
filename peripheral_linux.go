@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -395,6 +396,7 @@ func (p *peripheral) sendCmd(op byte, b []byte) (err error) {
 			err = fmt.Errorf("[sendCmd]recover: %+v", panicErr)
 		}
 	}()
+	log.Printf("[peripheral_linux][sendCmd] 0x%+v", hex.EncodeToString(b))
 	p.reqc <- message{op: op, b: b}
 	return nil
 }
@@ -406,6 +408,7 @@ func (p *peripheral) sendReq(op byte, b []byte) (data []byte, err error) {
 		}
 	}()
 	m := message{op: op, b: b, rspc: make(chan []byte)}
+	log.Printf("[peripheral_linux][sendReq] 0x%+v", hex.EncodeToString(m.b))
 	p.reqc <- m
 	data, ok := <-m.rspc
 	if !ok {
@@ -426,6 +429,7 @@ func (p *peripheral) loop() {
 		for {
 			select {
 			case req = <-p.reqc:
+				log.Printf("[peripheral_linux][loop] request data: 0x%+v", hex.EncodeToString(req.b))
 				p.l2c.Write(req.b)
 				if req.rspc == nil {
 					break
