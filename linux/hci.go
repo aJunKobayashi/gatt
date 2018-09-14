@@ -342,7 +342,7 @@ func (h *HCI) handleConnection(b []byte) {
 	h.connsmu.Lock()
 	h.conns[hh] = c
 	h.connsmu.Unlock()
-	h.setAdvertiseEnable(true)
+	// h.setAdvertiseEnable(true)
 
 	// FIXME: sloppiness. This call should be called by the package user once we
 	// flesh out the support of l2cap signaling packets (CID:0x0001,0x0005)
@@ -397,7 +397,7 @@ func (h *HCI) handleDisconnectionComplete(b []byte) error {
 	}
 	delete(h.conns, hh)
 	close(c.aclc)
-	h.setAdvertiseEnable(true)
+	// h.setAdvertiseEnable(true)
 	return nil
 }
 
